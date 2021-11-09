@@ -1,6 +1,7 @@
 **database.ini
 venv/
-.idea/
+.idea
 **__pycache__
 terraform.tfvars
 **secrets/
+.tfstate
