@@ -1,3 +1,4 @@
+# Build infrastructure
 terraform {
   required_providers {
     google = {
@@ -15,9 +16,73 @@ provider "google" {
   zone    = var.zone
 }
 
-#vpc
+# Firewall-säännöt
+resource "google_compute_firewall" "default" {
+  name    = "tuntikirjaus-firewall"
+  network = google_compute_network.vpc_network.id
 
-#firewall
+  allow {
+    protocol = "icmp"
+  }
 
-#postgresql instanssi
+  allow {
+    protocol = "tcp"
+    ports    = ["22", "80", "8080", "1000-2000"]
+  }
 
+  target_tags = ["tuntikirjaus-tag"]
+}
+
+# VPC-networkin rakennus
+resource "google_compute_network" "vpc_network" {
+  name                    = "tuntikirjaus-vpc"
+  auto_create_subnetworks = true
+}
+
+# Subnetworkin lisääminen
+resource "google_compute_subnetwork" "network-with-private-secondary-ip-ranges" {
+  name          = "tuntikirjaus-subnetwork"
+  ip_cidr_range = "10.2.0.0/16"
+  network       = google_compute_network.vpc_network.id
+
+  secondary_ip_range {
+    range_name    = "tf-test-secondary-range-update1"
+    ip_cidr_range = "192.168.10.0/24"
+  }
+}
+
+
+
+
+
+# VM-instanssin luonti
+resource "google_compute_instance" "vm_instance" {
+  name         = "tuntikirjaus-instance"
+  machine_type = "f1-micro"
+  tags         = ["tuntikirjaus-tag"]
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-9"
+    }
+  }
+  network_interface {
+    network = google_compute_network.vpc_network.id
+    access_config {
+      // Ephemeral public IP
+    }
+  }
+
+  metadata_startup_script = file("startup-script.sh")
+
+}
+
+# SQL instanssin luonti
+resource "google_sql_database_instance" "master" {
+  name             = "tuntikirjaus-proj-sql"
+  database_version = "POSTGRES_13"
+
+  settings {
+    tier = var.tier
+  }
+}
