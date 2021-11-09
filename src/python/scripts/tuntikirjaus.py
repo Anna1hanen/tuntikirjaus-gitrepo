@@ -3,6 +3,9 @@ class Tuntikirja:
         #self.date = aloituspäivä talteen loppupäivän vertailua varten
         pass
         
+    def menu():
+        return "Hello world!"
+
     def start_date():
         pass
 
@@ -22,5 +25,5 @@ class Tuntikirja:
         pass
     
 if __name__ == "__main__":
-    tunnit = Tuntikirja()
-    print(tunnit.menu())
+    #tunnit = Tuntikirja()
+    print(Tuntikirja.menu())
