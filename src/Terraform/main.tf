@@ -52,9 +52,6 @@ resource "google_compute_subnetwork" "network-with-private-secondary-ip-ranges" 
 }
 
 
-
-
-
 # VM-instanssin luonti
 resource "google_compute_instance" "vm_instance" {
   name         = "tuntikirjaus-instance"
@@ -78,11 +75,18 @@ resource "google_compute_instance" "vm_instance" {
 }
 
 # SQL instanssin luonti
-resource "google_sql_database_instance" "master" {
-  name             = "tuntikirjaus-proj-sql"
-  database_version = "POSTGRES_13"
+#
+#resource "google_sql_database_instance" "master" {
+#  name             = "tuntikirjaus-proj-sql"
+#  database_version = "POSTGRES_13"
+#
+# settings {
+#    tier = var.tier
+#  }
+#}
 
-  settings {
-    tier = var.tier
-  }
+# Databasen luonti
+resource "google_sql_database" "database" {
+  name     = "tuntikirjaus-database"
+  instance = "tuntikirjaus-proj-sql"
 }
