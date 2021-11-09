@@ -1,6 +1,16 @@
 **database.ini
 venv/
-.idea/
+.idea
 **__pycache__
 terraform.tfvars
 **secrets/
+
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
