@@ -16,3 +16,4 @@ def config(filename='../data/database.ini', section='postgresql'):
 
 if __name__ == "__main__":
     config()
+
