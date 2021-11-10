@@ -1,71 +1,51 @@
 from datetime import datetime
+from datetime import time
+from datetime import date
 
 class Tuntikirja:
     def __init__(self):
         #self.date = aloituspäivä talteen loppupäivän vertailua varten
-        pass
+        self.end_date = end_date 
+        self.end_time = end_time
+        self.end_time_and_end_date = end_time_and_end_date
+        self.start_date = start_date
+        self.start_time = start_time
+        self.start_time_and_start_date = start_time_and_start_date
+        self.table = table
         
     def menu():
         return "Hello world!"
 
-    def start_date():
+    def set_start_date():
         pass
 
-    def start_time():
+    def set_start_time():
         pass
 
-    def end_date():
-        date2 = input("Anna työpäivän lopetuspäivämäärä muodossa yyyy/mm/dd")
-        date2 = date.datetime(yyyy, mm, dd)
-        if date1 > date2:
-            valinta = input("Lopetuspäivämäärä on ennen aloituspäivämäärää, halaisitko muuttaa sen? Valitse k tai e")
-            if valinta == 'k':
-                return start_date()
+    def set_end_date(self):
+        enddate_entry = input("Anna aloituspäivämäärä muodossa DD/MM/YYYY")
+        day, month, year = map(int, enddate_entry.split('/'))
+        self.end_date = datetime.date(year, month, day)
+        if self.start_date > self.end_date:
+            valinta = input(f"Lopetuspäivämäärä ({self.end_date}) on ennen aloituspäivämäärää ({self.start_date}), haluaisitko muuttaa sen? Valitse k tai e")
+            if valinta == 'k' or valinta =='K':
+                return self.start_date()
             else:
-                continue
-            continue
-        con = None 
-        try: 
-            con = psycopg2.connect(**config()) 
-            cur = con.cursor() 
-            SQL = "INSERT INTO self.table (date2)  VALUES (%s) ;" 
-            cur.execute(SQL,(enddate))
-            cursor = con.cursor()
-            con.commit()
-            count = cursor.rowcount
+                return self.end_date
 
-        except (Exception, psycopg2.DatabaseError) as error:
-            print(error)
-        finally:
-            if con is not None:
-                con.close()
+    def set_end_time(self):
+        endtime_entry = input("Anna lopetusaika muodossa HH:MM")
+        self.end_time = datetime.datetime.strptime(endtime_entry, '%H:%M').time()
+        end_time_and_end_date = date.self.end_date + time.self.end_time
+        start_time_and_start_date = date.self.start_date + time.self.end_time
+        if start_time_and_start_date > end_time_and_end_date:
+            valinta = input(f"Työn lopetusajankohta ({self.end_time}) ei voi ennen aloitusajankohtaa ({self.start_time}). Haluatko muuttaa aloitusajankohtaa? Vastaa k, jos haluat")
+            if valinta == 'k' or valinta == 'K':
+                return set_start_date()
+        
+            return self.end_time
 
-    def end_time(time2):
-
-        con = None 
-        try: 
-            con = psycopg2.connect(**config()) 
-            cur = con.cursor() 
-            SQL = "INSERT INTO self.table (time2)  VALUES (%s) ;" 
-            cur.execute(SQL,(time2))
-            cursor = con.cursor()
-            con.commit()
-            count = cursor.rowcount
-
-        except (Exception, psycopg2.DatabaseError) as error:
-            print(error)
-        finally:
-            if con is not None:
-                con.close()
-
-            first_date = datetime.date(2020, 12, 16)
-            second_date = datetime.date(2015, 12, 16)
-
-result = first_date < second_date
-print(result)
-            #palaa start dateen! Printtaa et ootko varma?
-
-    def project():
+    def set_project():
         pass
 
     def input():
@@ -73,4 +53,3 @@ print(result)
     
 if __name__ == "__main__":
     #tunnit = Tuntikirja()
-    print(Tuntikirja.menu())
