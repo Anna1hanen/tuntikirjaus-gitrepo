@@ -1,30 +1,108 @@
+import datetime
+
+
+menu_commands = "1: Lisää uusi tuntikirja \n" \
+                "2: Katso kuluneen viikon tuntikirjaukset \n" \
+                "3: Poistu\n>"
+
+
 class Tuntikirja:
-    def __init__(self):
-        #self.date = aloituspäivä talteen loppupäivän vertailua varten
-        pass
-        
-    def menu():
-        return "Hello world!"
+    def __init__(self, start_date = 0, end_date = 0, start_time = 0, end_time = 0, project_name = "", definition = ""):
+        self.start_date = start_date
+        self.end_date = end_date
+        self.start_time = start_time
+        self.end_time = end_time
+        self.project_name = project_name
+        self.definition = definition
 
-    def start_date():
+    def set_start_date(self):
+        while True:
+            try:
+                date_entry = input("Anna aloituspäivämäärä muodossa DD/MM/YYYY\n>")
+                day, month, year = map(int, date_entry.split('/'))
+                self.start_date = datetime.date(year, month, day)
+                return self.start_date
+            except Exception as e:
+                print(f"Virheellinen syöte, {e}")
+                continue
+
+
+    def set_start_time(self):
+        while True:
+            try:
+                date_entry = input("Anna aloitusaika muodossa HH:MM\n>")
+                hour, minute = map(int, date_entry.split(':'))
+                self.start_time = datetime.time(hour, minute)
+                return self.start_time
+            except Exception as e:
+                print(f"Virheellinen syöte, {e}")
+
+
+    def set_end_date(self):
         pass
 
-    def start_time():
+
+    def set_end_time(self):
         pass
 
-    def end_date():
+
+    def set_project_name(self):
         pass
 
-    def end_time():
+
+    def set_definition(self):
         pass
 
-    def project():
-        pass
+    def __str__(self):
+        return f"Aloitus päivä: {self.start_date}\n" \
+               f"Aloitus aika: {self.start_time}\n" \
+               f"Lopetus päivä: {self.end_date}\n" \
+               f"Lopetus aika: {self.end_time}\n" \
+               f"Projektin nimi: {self.project_name}\n" \
+               f"Selite: {self.definition}"
 
-    def input():
-        pass
 
-    
+def menu():
+    while True:
+        try:
+            command = int(input(menu_commands))
+            if command == 1:
+                # tee uusi tuntikirja
+                make_new_worklog()
+            elif command == 2:
+                # katso tuntikirjaukset
+                pass
+            elif command == 3:
+                # lopettaa ohjelman
+                break
+            else:
+                print("Virheellinen syöte")
+        except Exception as e:
+            # tuli virhe jossain päin koodia
+
+            # raise tarkempaa testausta varten
+            # raise e
+
+            # raaka errorin printti
+            print(f"Virheellinen syöte, {e}")
+
+            # käyttäjäystävällisempi printti?
+            # print("Voihan juukeli jokin meni pieleen")
+
+
+def make_new_worklog():
+    tuntikirja = Tuntikirja()
+    tuntikirja.set_start_date()
+    tuntikirja.set_start_time()
+    print(tuntikirja)
+
+    insert_to_database()
+
+
+def insert_to_database():
+    # Laitetaan data databaseen
+    pass
+
+
 if __name__ == "__main__":
-    #tunnit = Tuntikirja()
-    print(Tuntikirja.menu())
+    menu()
