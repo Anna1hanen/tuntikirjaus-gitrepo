@@ -7,7 +7,7 @@ menu_commands = "1: Lisää uusi tuntikirja \n" \
                 "2: Katso kuluneen viikon tuntikirjaukset \n" \
                 "3: Poistu\n>"
 
-user = "Hannu"
+user = "Elina"
 
 
 class Tuntikirja:
