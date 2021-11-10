@@ -19,14 +19,13 @@ provider "google" {
 # VPC-networkin rakennus
 resource "google_compute_network" "vpc_network" {
   name                    = "tuntikirjaus-vpc"
-  auto_create_subnetworks = false
+  auto_create_subnetworks = true
 }
 
 # Subnetworkin lisääminen
-resource "google_compute_subnetwork" "vpc_subnetwork" {
+resource "google_compute_subnetwork" "network-with-private-secondary-ip-ranges" {
   name          = "tuntikirjaus-subnetwork"
   ip_cidr_range = "10.2.0.0/16"
-  region        = var.region
   network       = google_compute_network.vpc_network.id
 
   secondary_ip_range {
@@ -34,7 +33,6 @@ resource "google_compute_subnetwork" "vpc_subnetwork" {
     ip_cidr_range = "192.168.10.0/24"
   }
 }
-
 
 # Firewall-säännöt 
 resource "google_compute_firewall" "default" {
@@ -47,7 +45,7 @@ resource "google_compute_firewall" "default" {
 
   allow {
     protocol = "tcp"
-    ports    = ["22", "80", "8080", "1000-2000"]
+    ports    = ["22", "80", "443", "8080", "1000-2000"]
   }
   target_tags = ["tuntikirjaus-firewall-tag"]
 }
@@ -66,12 +64,12 @@ resource "google_compute_instance" "vm_instance" {
   }
   network_interface {
     network    = google_compute_network.vpc_network.id
-    subnetwork = google_compute_subnetwork.vpc_subnetwork.id
+    subnetwork = google_compute_subnetwork.network-with-private-secondary-ip-ranges.id
     access_config {
       // Ephemeral public IP
     }
   }
-  metadata_startup_script = file("startup-script.sh")
+  metadata_startup_script = file("./startup-script.sh")
 }
 
 # #SQL instanssin luonti

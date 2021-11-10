@@ -30,35 +30,35 @@ class Tuntikirja:
     def set_end_time():
         pass
 
-    def set_project_name(self, project_name):
-        self.project_name = project_name
+    def set_project_name(self):
         self.project_name = input("Anna projektin nimi")
+        return self.project_name
         
-        con = None
-    try:
-        con = psycopg2.connect(**config())
-        cur = con.cursor()
-        SQL = "INSERT INTO naamataulu (name, person_id) VALUES (%s,%s) RETURNING *;"
-        val = (name, person_id)
-        cur.execute(SQL, val)
+    #     con = None
+    # try:
+    #     con = psycopg2.connect(**config())
+    #     cur = con.cursor()
+    #     SQL = "INSERT INTO naamataulu (self.project_name) VALUES (%s);"
+    #     val = (input("Anna projektin nimi"))
+    #     cur.execute(SQL, val)
 
-        print(cur.rowcount, "record inserted.")
+    #     print(cur.rowcount, "record inserted.")
 
-        con.commit()
-        cur.close()
-        con.close()
+    #     con.commit()
+    #     cur.close()
+    #     con.close()
 
-    except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
-    finally:
-        if con is not None:
-            con.close()
+    # except (Exception, psycopg2.DatabaseError) as error:
+    #     print(error)
+    # finally:
+    #     if con is not None:
+    #         con.close()
 
 
 
         pass
 
-    def definition():
+    def set_definition():
         pass
     
 if __name__ == "__main__":
