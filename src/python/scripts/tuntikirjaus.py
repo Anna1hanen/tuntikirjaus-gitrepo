@@ -1,10 +1,14 @@
 import datetime
-from data import config as config
+from src.python.data.config import config as config
 import psycopg2
+import psycopg2.sql as sql
 
 menu_commands = "1: Lisää uusi tuntikirja \n" \
                 "2: Katso kuluneen viikon tuntikirjaukset \n" \
                 "3: Poistu\n>"
+
+user = "Hannu"
+
 
 class Tuntikirja:
     def __init__(self, start_date = 0, end_date = 0, start_time = 0, end_time = 0, project_name = "", definition = ""):
@@ -15,7 +19,6 @@ class Tuntikirja:
         self.end_time = end_time
         self.project_name = project_name
         self.definition = definition
-
 
     def set_start_date(self):
         while True:
@@ -28,7 +31,6 @@ class Tuntikirja:
                 print(f"Virheellinen syöte, {e}")
                 continue
 
-
     def set_start_time(self):
         while True:
             try:
@@ -38,7 +40,6 @@ class Tuntikirja:
                 return self.start_time
             except Exception as e:
                 print(f"Virheellinen syöte, {e}")
-
 
     def set_end_date(self):
         enddate_entry = input("Anna aloituspäivämäärä muodossa DD/MM/YYYY")
@@ -54,19 +55,16 @@ class Tuntikirja:
     def set_end_time(self):
         endtime_entry = input("Anna lopetusaika muodossa HH:MM")
         self.end_time = datetime.datetime.strptime(endtime_entry, '%H:%M').time()
-        end_time_and_end_date = date.self.end_date + time.self.end_time
-        start_time_and_start_date = date.self.start_date + time.self.end_time
+        end_time_and_end_date = datetime.date.self.end_date + datetime.time.self.end_time
+        start_time_and_start_date = datetime.date.self.start_date + datetime.time.self.end_time
         if start_time_and_start_date > end_time_and_end_date:
             valinta = input(f"Työn lopetusajankohta ({self.end_time}) ei voi ennen aloitusajankohtaa ({self.start_time}). Haluatko muuttaa aloitusajankohtaa? Vastaa k, jos haluat")
             if valinta == 'k' or valinta == 'K':
-                return set_start_date()
+                return self.set_start_date()
         
             return self.end_time
 
-
-
-        
-     def set_project_name(self):
+    def set_project_name(self):
         self.project_name = input("Anna projektin nimi")
         return self.project_name
         
@@ -125,10 +123,10 @@ def menu():
             # tuli virhe jossain päin koodia
 
             # raise tarkempaa testausta varten
-            # raise e
+            raise e
 
             # raaka errorin printti
-            print(f"Virheellinen syöte, {e}")
+            # print(f"Virheellinen syöte, {e}")
 
             # käyttäjäystävällisempi printti?
             # print("Voihan juukeli jokin meni pieleen")
@@ -140,12 +138,43 @@ def make_new_worklog():
     tuntikirja.set_start_time()
     print(tuntikirja)
 
-    insert_to_database()
+    insert_to_database(tuntikirja)
 
 
-def insert_to_database():
+def insert_to_database(tuntikirja):
     # Laitetaan data databaseen
-    pass
+    conn = psycopg2.connect(**config())
+    cur = conn.cursor()
+    if check_if_table_exists(conn, cur):
+        # table for the user already exists
+        pass
+    else:
+        # Create new table with username
+        cur.execute(
+            sql.SQL("""
+        CREATE TABLE {} (
+            id serial primary key,
+            start_date varchar(255) NOT NULL,
+            start_time varchar(255) NOT NULL,
+            end_date varchar(255) NOT NULL,
+            end_time varchar(255) NOT NULL,
+            project_name varchar (255) NOT NULL,
+            definition varchar(255) NOT NULL
+        )
+        """).format(sql.Identifier(user)))
+
+
+    cur.execute(
+        sql.SQL("""
+    INSERT INTO {} (start_date, start_time, end_date, end_time, project_name, definition)
+    VALUES (%s, %s, %s, %s, %s, %s)
+    """).format(sql.Identifier(user)), (tuntikirja.start_date, tuntikirja.start_time, tuntikirja.end_date, tuntikirja.end_time, tuntikirja.project_name, tuntikirja.definition,))
+    conn.commit()
+
+
+def check_if_table_exists(conn, cur):
+    cur.execute("SELECT * FROM information_schema.tables WHERE table_name=%s", (user,))
+    return bool(cur.rowcount)
 
 
 if __name__ == "__main__":
