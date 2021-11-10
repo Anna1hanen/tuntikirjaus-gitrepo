@@ -3,7 +3,7 @@ from config import config
 import psycopg2
 import psycopg2.sql as sql
 
-user = "Elina"
+user = "python"
 
 class Tuntikirja:
     def __init__(self, start_date = 0, end_date = 0, start_time = 0, end_time = 0, project_name = "", definition = ""):
@@ -17,7 +17,7 @@ class Tuntikirja:
     def set_start_date(self):
         while True:
             try:
-                date_entry = input("Anna aloituspäivämäärä muodossa DD/MM/YYYY\n>")
+                date_entry = input("Anna aloituspäivämäärä muodossa DD/MM/YYYY\n> ")
                 day, month, year = map(int, date_entry.split('/'))
                 self.start_date = datetime.date(year, month, day)
                 return self.start_date
@@ -28,7 +28,7 @@ class Tuntikirja:
     def set_start_time(self):
         while True:
             try:
-                date_entry = input("Anna aloitusaika muodossa HH:MM\n>")
+                date_entry = input("Anna aloitusaika muodossa HH:MM\n> ")
                 hour, minute = map(int, date_entry.split(':'))
                 self.start_time = datetime.time(hour, minute)
                 return self.start_time
@@ -38,7 +38,7 @@ class Tuntikirja:
     def set_end_date(self):
         while True:
             try:
-                enddate_entry = input("Anna lopetuspäivä muodossa DD/MM/YYYY\n>")
+                enddate_entry = input("Anna lopetuspäivä muodossa DD/MM/YYYY\n> ")
                 day, month, year = map(int, enddate_entry.split('/'))
                 self.end_date = datetime.date(year, month, day)
                 if self.start_date > self.end_date:
@@ -59,7 +59,7 @@ class Tuntikirja:
     def set_end_time(self):
         while True:
             try:
-                endtime_entry = input("Anna lopetusaika muodossa HH:MM\n>")
+                endtime_entry = input("Anna lopetusaika muodossa HH:MM\n> ")
                 hour, minute = map(int, endtime_entry.split(':'))
                 self.end_time = datetime.time(hour, minute)
                 if self.start_date > self.end_date:
@@ -68,6 +68,7 @@ class Tuntikirja:
                         self.set_start_date()
                 elif self.start_date < self.end_date:
                     return self.end_time
+
                 elif self.start_date == self.end_date:
                     if self.end_time <= self.start_time:
                         valinta = int(input(f"Antamasi lopetuskellonaika {self.end_time} on joko sama tai ennen aloitusajankohtaa {self.start_time}.\n Jos haluat vaihtaa alkupäivän: valitse 1.\n Jos haluat vaihtaa alkuajan: valitse 2.\n Jos haluat vaihtaa lopetuspäivän: valitse 3.\n Jos haluat vaihtaa lopetuskellonajan, valitse 4\n>"))
@@ -87,12 +88,12 @@ class Tuntikirja:
                 print(f"Virheellinen syöte, {e}")        
   
     def set_project_name(self):
-        self.project_name = input("Anna projektin nimi: \n>")
+        self.project_name = input("Anna projektin nimi: \n> ")
         return self.project_name
 
     
     def set_definition(self):
-        self.definition = input("Anna työskentelyn sisältö: \n>")
+        self.definition = input("Anna työskentelyn sisältö: \n> ")
         return self.definition
 
 
