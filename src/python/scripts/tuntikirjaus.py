@@ -91,10 +91,11 @@ class Tuntikirja:
 
 
 if __name__ == "__main__":
-    menu_commands = "1: Lisää uusi tuntikirja \n" \
-                    "2: Katso kuluneen viikon tuntikirjaukset \n" \
-                    "3: Poistu\n>"
+
     def menu():
+        menu_commands = "1: Lisää uusi tuntikirja \n" \
+                        "2: Katso kuluneen viikon tuntikirjaukset \n" \
+                        "3: Poistu\n>"
         while True:
             try:
                 command = int(input(menu_commands))
