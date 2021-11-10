@@ -2,4 +2,4 @@
 sudo apt-get update
 sudo apt-get install apache2 -y
 sudo service apache2 restart
-echo '<!doctype html><html><body><h1>Tuntikirjaus</h1></body></html>' | tee /var/www/html/index.html
+echo '<!doctype html><html><body><h1>Tuntikirjaus - Team 2</h1></body></html>' | tee /var/www/html/index.html

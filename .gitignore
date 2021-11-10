@@ -3,6 +3,7 @@ venv/
 .idea
 **__pycache__
 terraform.tfvars
+terraform.tfstate
 **secrets/
 
 # Local .terraform directories
@@ -12,5 +13,7 @@ terraform.tfvars
 *.tfstate
 *.tfstate.*
 
+
 # Crash log files
 crash.log
+
