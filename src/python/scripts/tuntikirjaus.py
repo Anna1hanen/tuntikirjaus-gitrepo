@@ -1,5 +1,7 @@
-import datetime
 
+import datetime
+from data import config as config
+import psycopg2
 
 menu_commands = "1: Lisää uusi tuntikirja \n" \
                 "2: Katso kuluneen viikon tuntikirjaukset \n" \
@@ -8,12 +10,14 @@ menu_commands = "1: Lisää uusi tuntikirja \n" \
 
 class Tuntikirja:
     def __init__(self, start_date = 0, end_date = 0, start_time = 0, end_time = 0, project_name = "", definition = ""):
+
         self.start_date = start_date
         self.end_date = end_date
         self.start_time = start_time
         self.end_time = end_time
         self.project_name = project_name
         self.definition = definition
+
 
     def set_start_date(self):
         while True:
@@ -46,11 +50,36 @@ class Tuntikirja:
         pass
 
 
-    def set_project_name(self):
+
+        
+     def set_project_name(self):
+        self.project_name = input("Anna projektin nimi")
+        return self.project_name
+        
+    #     con = None
+    # try:
+    #     con = psycopg2.connect(**config())
+    #     cur = con.cursor()
+    #     SQL = "INSERT INTO naamataulu (self.project_name) VALUES (%s);"
+    #     val = (input("Anna projektin nimi"))
+    #     cur.execute(SQL, val)
+
+    #     print(cur.rowcount, "record inserted.")
+
+    #     con.commit()
+    #     cur.close()
+    #     con.close()
+
+    # except (Exception, psycopg2.DatabaseError) as error:
+    #     print(error)
+    # finally:
+    #     if con is not None:
+    #         con.close()
+
         pass
 
-
     def set_definition(self):
+
         pass
 
     def __str__(self):
@@ -106,3 +135,4 @@ def insert_to_database():
 
 if __name__ == "__main__":
     menu()
+

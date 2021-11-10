@@ -16,23 +16,6 @@ provider "google" {
   zone    = var.zone
 }
 
-# Firewall-säännöt
-resource "google_compute_firewall" "default" {
-  name    = "tuntikirjaus-firewall"
-  network = google_compute_network.vpc_network.id
-
-  allow {
-    protocol = "icmp"
-  }
-
-  allow {
-    protocol = "tcp"
-    ports    = ["22", "80", "8080", "1000-2000"]
-  }
-
-  target_tags = ["tuntikirjaus-tag"]
-}
-
 # VPC-networkin rakennus
 resource "google_compute_network" "vpc_network" {
   name                    = "tuntikirjaus-vpc"
@@ -51,12 +34,28 @@ resource "google_compute_subnetwork" "network-with-private-secondary-ip-ranges" 
   }
 }
 
+# Firewall-säännöt 
+resource "google_compute_firewall" "default" {
+  name    = "tuntikirjaus-firewall"
+  network = google_compute_network.vpc_network.id
+
+  allow {
+    protocol = "icmp"
+  }
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22", "80", "443", "8080", "1000-2000"]
+  }
+  target_tags = ["tuntikirjaus-firewall-tag"]
+}
+
 
 # VM-instanssin luonti
 resource "google_compute_instance" "vm_instance" {
   name         = "tuntikirjaus-instance"
   machine_type = "f1-micro"
-  tags         = ["tuntikirjaus-tag"]
+  tags         = ["tuntikirjaus-firewall-tag"]
 
   boot_disk {
     initialize_params {
@@ -64,29 +63,28 @@ resource "google_compute_instance" "vm_instance" {
     }
   }
   network_interface {
-    network = google_compute_network.vpc_network.id
+    network    = google_compute_network.vpc_network.id
+    subnetwork = google_compute_subnetwork.network-with-private-secondary-ip-ranges.id
     access_config {
       // Ephemeral public IP
     }
   }
-
-  metadata_startup_script = file("startup-script.sh")
-
+  metadata_startup_script = file("./startup-script.sh")
 }
 
-# SQL instanssin luonti
-#
-#resource "google_sql_database_instance" "master" {
-#  name             = "tuntikirjaus-proj-sql"
-#  database_version = "POSTGRES_13"
-#
-# settings {
-#    tier = var.tier
-#  }
-#}
+# #SQL instanssin luonti
 
-# Databasen luonti
-resource "google_sql_database" "database" {
-  name     = "tuntikirjaus-database"
-  instance = "tuntikirjaus-proj-sql"
-}
+# resource "google_sql_database_instance" "master" {
+#   name             = "tuntikirjaus-proj-sql"
+#   database_version = "POSTGRES_13"
+
+#   settings {
+#     tier = var.tier
+#   }
+# }
+
+# # Databasen luonti
+# resource "google_sql_database" "database" {
+#   name     = "tuntikirjaus-database"
+#   instance = "tuntikirjaus-proj-sql"
+# }
