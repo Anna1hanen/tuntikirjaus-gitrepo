@@ -1,10 +1,8 @@
-import datetime
-from data import config as config
-import psycopg2
 
-menu_commands = "1: Lisää uusi tuntikirja \n" \
-                "2: Katso kuluneen viikon tuntikirjaukset \n" \
-                "3: Poistu\n>"
+import psycopg2
+from config import config
+from datetime import datetime, date, time
+
 
 class Tuntikirja:
     def __init__(self, start_date = 0, end_date = 0, start_time = 0, end_time = 0, project_name = "", definition = ""):
@@ -15,7 +13,6 @@ class Tuntikirja:
         self.end_time = end_time
         self.project_name = project_name
         self.definition = definition
-
 
     def set_start_date(self):
         while True:
@@ -28,7 +25,6 @@ class Tuntikirja:
                 print(f"Virheellinen syöte, {e}")
                 continue
 
-
     def set_start_time(self):
         while True:
             try:
@@ -38,7 +34,6 @@ class Tuntikirja:
                 return self.start_time
             except Exception as e:
                 print(f"Virheellinen syöte, {e}")
-
 
     def set_end_date(self):
         enddate_entry = input("Anna aloituspäivämäärä muodossa DD/MM/YYYY")
@@ -63,90 +58,64 @@ class Tuntikirja:
         
             return self.end_time
 
-
-
         
-     def set_project_name(self):
-        self.project_name = input("Anna projektin nimi")
+    def set_project_name(self):
+        self.project_name = input("Anna projektin nimi: ")
         return self.project_name
-        
-    #     con = None
-    # try:
-    #     con = psycopg2.connect(**config())
-    #     cur = con.cursor()
-    #     SQL = "INSERT INTO naamataulu (self.project_name) VALUES (%s);"
-    #     val = (input("Anna projektin nimi"))
-    #     cur.execute(SQL, val)
 
-    #     print(cur.rowcount, "record inserted.")
-
-    #     con.commit()
-    #     cur.close()
-    #     con.close()
-
-    # except (Exception, psycopg2.DatabaseError) as error:
-    #     print(error)
-    # finally:
-    #     if con is not None:
-    #         con.close()
-
-
-        pass
-
+    
     def set_definition(self):
+        self.definition = input("Anna työskentelyn sisältö: ")
+        return self.definition
 
-        pass
-
-    def __str__(self):
-        return f"Aloitus päivä: {self.start_date}\n" \
-               f"Aloitus aika: {self.start_time}\n" \
-               f"Lopetus päivä: {self.end_date}\n" \
-               f"Lopetus aika: {self.end_time}\n" \
-               f"Projektin nimi: {self.project_name}\n" \
-               f"Selite: {self.definition}"
-
-
-def menu():
-    while True:
+    def insert_to_database(self):
+        con = None
         try:
-            command = int(input(menu_commands))
-            if command == 1:
-                # tee uusi tuntikirja
-                make_new_worklog()
-            elif command == 2:
-                # katso tuntikirjaukset
-                pass
-            elif command == 3:
-                # lopettaa ohjelman
-                break
-            else:
-                print("Virheellinen syöte")
-        except Exception as e:
-            # tuli virhe jossain päin koodia
+            con = psycopg2.connect(**config())
+            cur = con.cursor()
+            SQL = "INSERT INTO elina (project_name, definition) VALUES (%s, %s);"
+            val = (self.project_name, self.definition)
+            cur.execute(SQL, val)         
+            print(cur.rowcount, "record inserted.")
 
-            # raise tarkempaa testausta varten
-            # raise e
+            con.commit()
+            cur.close()
+            con.close()
 
-            # raaka errorin printti
-            print(f"Virheellinen syöte, {e}")
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
 
-            # käyttäjäystävällisempi printti?
-            # print("Voihan juukeli jokin meni pieleen")
-
-
-def make_new_worklog():
-    tuntikirja = Tuntikirja()
-    tuntikirja.set_start_date()
-    tuntikirja.set_start_time()
-    print(tuntikirja)
-
-    insert_to_database()
-
-
-def insert_to_database():
-    # Laitetaan data databaseen
-    pass
+        finally:
+            if con is not None:
+                con.close()       
 
 
 if __name__ == "__main__":
+    menu_commands = "1: Lisää uusi tuntikirja \n" \
+                    "2: Katso kuluneen viikon tuntikirjaukset \n" \
+                    "3: Poistu\n>"
+    def menu():
+        while True:
+            try:
+                command = int(input(menu_commands))
+                if command == 1:
+                    # tee uusi tuntikirja
+                    make_new_worklog()
+                elif command == 2:
+                    # katso tuntikirjaukset
+                    pass
+                elif command == 3:
+                    # lopettaa ohjelman
+                    break
+                else:
+                    print("Virheellinen syöte")
+            except Exception as e:
+                print(f"Virheellinen syöte, {e}")
+
+    def make_new_worklog():
+        tuntikirja = Tuntikirja()
+        tuntikirja.set_project_name()
+        tuntikirja.set_definition()
+        tuntikirja.insert_to_database()
+    
     menu()
