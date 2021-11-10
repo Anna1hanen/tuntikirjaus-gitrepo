@@ -45,7 +45,7 @@ resource "google_compute_firewall" "default" {
 
   allow {
     protocol = "tcp"
-    ports    = ["22", "80", "443", "8080", "1000-2000"]
+    ports    = ["22", "80", "443", "8080", "1000-2000", "5432"]
   }
   target_tags = ["tuntikirjaus-firewall-tag"]
 }

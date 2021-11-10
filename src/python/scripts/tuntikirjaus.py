@@ -1,14 +1,9 @@
 import datetime
-from src.python.data.config import config as config
+from config import config
 import psycopg2
 import psycopg2.sql as sql
 
-menu_commands = "1: Lisää uusi tuntikirja \n" \
-                "2: Katso kuluneen viikon tuntikirjaukset \n" \
-                "3: Poistu\n>"
-
-user = "Elina"
-
+user = "Hannu"
 
 class Tuntikirja:
     def __init__(self, start_date = 0, end_date = 0, start_time = 0, end_time = 0, project_name = "", definition = ""):
@@ -61,39 +56,19 @@ class Tuntikirja:
             valinta = input(f"Työn lopetusajankohta ({self.end_time}) ei voi ennen aloitusajankohtaa ({self.start_time}). Haluatko muuttaa aloitusajankohtaa? Vastaa k, jos haluat")
             if valinta == 'k' or valinta == 'K':
                 return self.set_start_date()
-        
+
             return self.end_time
 
-    def set_project_name(self):
-        self.project_name = input("Anna projektin nimi")
-        return self.project_name
         
-    #     con = None
-    # try:
-    #     con = psycopg2.connect(**config())
-    #     cur = con.cursor()
-    #     SQL = "INSERT INTO naamataulu (self.project_name) VALUES (%s);"
-    #     val = (input("Anna projektin nimi"))
-    #     cur.execute(SQL, val)
+    def set_project_name(self):
+        self.project_name = input("Anna projektin nimi: ")
+        return self.project_name
 
-    #     print(cur.rowcount, "record inserted.")
-
-    #     con.commit()
-    #     cur.close()
-    #     con.close()
-
-    # except (Exception, psycopg2.DatabaseError) as error:
-    #     print(error)
-    # finally:
-    #     if con is not None:
-    #         con.close()
-
-
-        pass
-
+    
     def set_definition(self):
+        self.definition = input("Anna työskentelyn sisältö: ")
+        return self.definition
 
-        pass
 
     def __str__(self):
         return f"Aloitus päivä: {self.start_date}\n" \
@@ -105,6 +80,10 @@ class Tuntikirja:
 
 
 def menu():
+    menu_commands = "1: Lisää uusi tuntikirja \n" \
+                    "2: Katso kuluneen viikon tuntikirjaukset \n" \
+                    "3: Poistu\n>"
+
     while True:
         try:
             command = int(input(menu_commands))
@@ -136,40 +115,58 @@ def make_new_worklog():
     tuntikirja = Tuntikirja()
     tuntikirja.set_start_date()
     tuntikirja.set_start_time()
-    print(tuntikirja)
+
+    tuntikirja.set_project_name()
+    tuntikirja.set_definition()
+    print(f"\n{tuntikirja}\n")
 
     insert_to_database(tuntikirja)
 
 
 def insert_to_database(tuntikirja):
-    # Laitetaan data databaseen
-    conn = psycopg2.connect(**config())
-    cur = conn.cursor()
-    if check_if_table_exists(conn, cur):
-        # table for the user already exists
-        pass
-    else:
-        # Create new table with username
+    con = None
+    try:
+        # Laitetaan data databaseen
+        conn = psycopg2.connect(**config())
+        cur = conn.cursor()
+        if check_if_table_exists(conn, cur):
+            # table for the user already exists
+            pass
+        else:
+            # Create new table with username
+            cur.execute(
+                sql.SQL("""
+            CREATE TABLE {} (
+                id serial primary key,
+                start_date varchar(255) NOT NULL,
+                start_time varchar(255) NOT NULL,
+                end_date varchar(255) NOT NULL,
+                end_time varchar(255) NOT NULL,
+                project_name varchar (255) NOT NULL,
+                definition varchar(255) NOT NULL
+            )
+            """).format(sql.Identifier(user)))
+
         cur.execute(
             sql.SQL("""
-        CREATE TABLE {} (
-            id serial primary key,
-            start_date varchar(255) NOT NULL,
-            start_time varchar(255) NOT NULL,
-            end_date varchar(255) NOT NULL,
-            end_time varchar(255) NOT NULL,
-            project_name varchar (255) NOT NULL,
-            definition varchar(255) NOT NULL
+                INSERT INTO {} (start_date, start_time, end_date, end_time, project_name, definition)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """).format(sql.Identifier(user)), (
+                tuntikirja.start_date,
+                tuntikirja.start_time,
+                tuntikirja.end_date,
+                tuntikirja.end_time,
+                tuntikirja.project_name,
+                tuntikirja.definition,)
         )
-        """).format(sql.Identifier(user)))
+        conn.commit()
 
+    except Exception as e:
+        print(f"Tapahtui virhe, {e}")
 
-    cur.execute(
-        sql.SQL("""
-    INSERT INTO {} (start_date, start_time, end_date, end_time, project_name, definition)
-    VALUES (%s, %s, %s, %s, %s, %s)
-    """).format(sql.Identifier(user)), (tuntikirja.start_date, tuntikirja.start_time, tuntikirja.end_date, tuntikirja.end_time, tuntikirja.project_name, tuntikirja.definition,))
-    conn.commit()
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 def check_if_table_exists(conn, cur):
@@ -179,5 +176,6 @@ def check_if_table_exists(conn, cur):
 
 if __name__ == "__main__":
     menu()
+
 
 
