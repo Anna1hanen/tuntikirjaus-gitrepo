@@ -194,7 +194,7 @@ def menu(user):
             # tuli virhe jossain päin koodia
 
             #raise tarkempaa testausta varten
-            #raise e
+            # raise e
 
             # raaka errorin printti
             print(f"Virheellinen syöte, {e}")
@@ -277,41 +277,39 @@ def insert_to_database(tuntikirja, user):
 
 def select_from_table(user):
     conn = None
-    
     try:
+        # Hae viimeisimmät kirjaukset
         conn = psycopg2.connect(**config())
-        cur = conn.cursor()   
-        cur.execute(
-            sql.SQL("SELECT * FROM {}").format(sql.Identifier(user)))
+        cur = conn.cursor()
+        cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = %s", (user,))
         rows = cur.fetchall()
+
         if rows is not None:
             for row in rows:
                 print(row)
-        cur.close()
+                '''
+                row = ' '.join(row)
+                cur.execute(f"SELECT * FROM {row};")
+                row = cur.fetchone()
+                print(f"\n{row} - Tuntikirja")
+
+                if row is not None:
+                    for row in rows:
+                        rivi = ' | '.join(map(str, (row)))
+                        print(rivi)
+                        row = cur.fetchone()
+                '''
 
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
+        # raise error
+
     finally:
         if conn is not None:
             conn.close()
-    # Hae viimeisimmät kirjaukset
-    conn = psycopg2.connect(**config())
-    conn = None    
-    cur = conn.cursor() 
-    cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES, WHERE TABLE_NAME = %s", (user))
-    row = cur.fetchall()     
 
-    while row is not None:
-        for i in row:
-            i = ' '.join(i)        
-            cur.execute(f"SELECT * FROM {i};")
-            row = cur.fetchone()    
-            print(f"\n{i} - Tuntikirja")
 
-            if row is not None:
-                rivi = ' | '.join(map(str,(row)))
-                print(rivi)
-                row = cur.fetchone()
+
 
 
 
@@ -467,7 +465,7 @@ def login():
 
     except Exception as e:
         print(f"Tapahtui virhe 4, {e}")
-        #raise e
+        # raise e
     finally:
         if conn is not None:
             conn.close()
