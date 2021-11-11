@@ -176,13 +176,13 @@ def menu(user):
 
     while True:
         try:
-            print(f"Kirjautuneena sisään käyttäjällä: {user}")
+            print(f"\nKirjautuneena sisään käyttäjällä: {user}\n")
             command = int(input(menu_commands))
             if command == 1:
                 # tee uusi tuntikirja
                 make_new_worklog(user)
             elif command == 2:
-                print(select_from_table(user))
+                select_from_table(user)
                 pass
             elif command == 3:
                 # kirjautuu ulos
@@ -285,20 +285,9 @@ def select_from_table(user):
         rows = cur.fetchall()
 
         if rows is not None:
+            print(f"{user}")
             for row in rows:
-                print(row)
-                '''
-                row = ' '.join(row)
-                cur.execute(f"SELECT * FROM {row};")
-                row = cur.fetchone()
-                print(f"\n{row} - Tuntikirja")
-
-                if row is not None:
-                    for row in rows:
-                        rivi = ' | '.join(map(str, (row)))
-                        print(rivi)
-                        row = cur.fetchone()
-                '''
+                print(f"{row[1]} - {row[2]} - {row[3]} - {row[4]} - {row[5]} - {row[6]} - {row[7]}")
 
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
@@ -307,10 +296,6 @@ def select_from_table(user):
     finally:
         if conn is not None:
             conn.close()
-
-
-
-
 
 
 def check_if_table_exists(cur, table):
