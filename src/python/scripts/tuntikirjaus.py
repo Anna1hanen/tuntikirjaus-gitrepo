@@ -284,7 +284,7 @@ def select_from_table(user):
         cur.execute(
             sql.SQL("SELECT * FROM {}").format(sql.Identifier(user)))
         rows = cur.fetchall()
-        while rows is not None:
+        if rows is not None:
             for row in rows:
                 print(row)
         cur.close()
