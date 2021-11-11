@@ -362,25 +362,6 @@ def register():
                 if len(username) < 1 or len(username) > 20:
                     print("Syöte on väärän mittainen, syötteen tulee olla väliltä 1 ja 20, yritä uudelleen")
                     continue
-                password = input("Anna salasana\n> ")
-                password2 = input("Anna salasana uudelleen\n> ")
-                if password == password2:
-                    # Tarkistetaan onko käyttäjänimi jo olemassa
-                    if check_if_user_exists(cur, username):
-                        # Käyttäjänimi on jo olemassa
-                        print("Käyttäjänimi on varattu")
-                        pass
-                    else:
-                        encoded_password = str.encode(password)
-                        hashed_password = SHA256.new()
-                        hashed_password.update(encoded_password)
-                        binary_password_string = hashed_password.digest()
-                        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, str(binary_password_string)))
-
-
-
-                        conn.commit()
-                        break
                 else:
                     password = input("Anna salasana\n> ")
                     if len(password) < 1 or len(password) > 30:
