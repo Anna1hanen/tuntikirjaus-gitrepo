@@ -107,7 +107,7 @@ class Tuntikirja:
 def menu(user):
     menu_commands = "1: Lisää uusi tuntikirja \n" \
                     "2: Katso kuluneen viikon tuntikirjaukset \n" \
-                    "3: Kirjaudu ulos\n>"
+                    "3: Kirjaudu ulos\n> "
 
     while True:
         try:
@@ -117,7 +117,7 @@ def menu(user):
                 # tee uusi tuntikirja
                 make_new_worklog(user)
             elif command == 2:
-                # katso tuntikirjaukset
+                select_from_table(user)
                 pass
             elif command == 3:
                 # lopettaa ohjelman
@@ -149,10 +149,11 @@ def make_new_worklog(user):
     print(f"\n{tuntikirja}\n")
 
     insert_to_database(tuntikirja, user)
+    select_from_table(user)
 
 
 def insert_to_database(tuntikirja, user):
-    con = None
+    conn = None
     try:
         # Laitetaan data databaseen
         conn = psycopg2.connect(**config())
@@ -201,6 +202,31 @@ def insert_to_database(tuntikirja, user):
         if conn is not None:
             conn.close()
 
+def select_from_table(user):
+    conn = None
+    try:
+        conn = psycopg2.connect(**config())
+        cur = conn.cursor()   
+        cur.execute(
+            sql.SQL("SELECT * FROM {}").format(sql.Identifier(user)))
+        row = cur.fetchone()
+
+        field_names = [i[0]
+        for i in cur.description]
+        print(f"{field_names}")
+
+        while row is not None:
+            print(f"{row}")
+            row = cur.fetchone()
+        cur.close()
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()  
+
+
 
 def check_if_table_exists(cur, table):
     cur.execute("SELECT * FROM information_schema.tables WHERE table_name=%s", (table,))
@@ -235,7 +261,7 @@ def login_window():
             raise e
 
 def register():
-    con = None
+    conn = None
     try:
         # Laitetaan data databaseen
         conn = psycopg2.connect(**config())
@@ -259,9 +285,9 @@ def register():
             if command == 2:
                 break
             elif command == 1:
-                username = input("Anna käyttäjänimi\n>")
-                password = input("Anna salasana\n>")
-                password2 = input("Anna salasana uudelleen\n>")
+                username = input("Anna käyttäjänimi\n> ")
+                password = input("Anna salasana\n> ")
+                password2 = input("Anna salasana uudelleen\n> ")
                 if password == password2:
                     # Tarkistetaan onko käyttäjänimi jo olemassa
                     if check_if_user_exists(cur, username):
@@ -288,19 +314,19 @@ def register():
 
 
 def login():
-    con = None
+    conn = None
     try:
         conn = psycopg2.connect(**config())
         cur = conn.cursor()
         while True:
             command = int(input("1: Kirjaudu\n"
-                                "2: Poistu\n>"))
+                                "2: Poistu\n> "))
             if command == 2:
-                break
+               break
 
             elif command == 1:
-                username = input("Anna käyttäjänimi\n>")
-                password = input("Anna salasana\n>")
+                username = input("Anna käyttäjänimi\n> ")
+                password = input("Anna salasana\n> ")
 
                 cur.execute("SELECT username FROM users WHERE username=%s AND password=%s", (username, password))
                 if bool(cur.rowcount) is True:
