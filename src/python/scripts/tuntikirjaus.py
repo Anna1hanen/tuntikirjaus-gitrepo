@@ -294,6 +294,25 @@ def select_from_table(user):
     finally:
         if conn is not None:
             conn.close()
+    # Hae viimeisimmät kirjaukset
+    conn = psycopg2.connect(**config())
+    conn = None    
+    cur = conn.cursor() 
+    cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES, WHERE TABLE_NAME = %s", (user))
+    row = cur.fetchall()     
+
+    while row is not None:
+        for i in row:
+            i = ' '.join(i)        
+            cur.execute(f"SELECT * FROM {i};")
+            row = cur.fetchone()    
+            print(f"\n{i} - Tuntikirja")
+
+            if row is not None:
+                rivi = ' | '.join(map(str,(row)))
+                print(rivi)
+                row = cur.fetchone()
+
 
 
 def check_if_table_exists(cur, table):
@@ -375,6 +394,8 @@ def register():
                         binary_password_string = hashed_password.digest()
                         cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, str(binary_password_string)))
 
+
+
                         conn.commit()
                         break
                 else:
@@ -433,8 +454,8 @@ def login():
                 hashed_password.update(encoded_password)
                 binary_password_string = hashed_password.digest()
 
-
                 cur.execute("SELECT username FROM users WHERE username=%s AND password=%s", (username,str(binary_password_string)))
+
                 if bool(cur.rowcount) is True:
                     returned_user = cur.fetchone()[0]
                     user = returned_user
