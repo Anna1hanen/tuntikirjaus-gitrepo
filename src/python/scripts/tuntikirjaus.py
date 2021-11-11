@@ -1,8 +1,11 @@
 import datetime
+import json
 from config import config
 import psycopg2
 import psycopg2.sql as sql
 from Crypto.Hash import SHA256
+import requests
+
 
 class Tuntikirja:
     def __init__(self, start_date = 0, end_date = 0, start_time = 0, end_time = 0, project_name = "", definition = ""):
@@ -17,9 +20,13 @@ class Tuntikirja:
         while True:
             try:
                 date_entry = input("Anna aloituspäivämäärä muodossa DD/MM/YYYY\n> ")
-                day, month, year = map(int, date_entry.split('/'))
-                self.start_date = datetime.date(year, month, day)
-                return self.start_date
+                if len(date_entry) != 10:
+                    print("Syöte on väärän mittainen, yritä uudelleen")
+                    continue
+                else:
+                    day, month, year = map(int, date_entry.split('/'))
+                    self.start_date = datetime.date(year, month, day)
+                    return self.start_date
             except Exception as e:
                 print(f"Virheellinen syöte, {e}")
                 continue
@@ -28,9 +35,14 @@ class Tuntikirja:
         while True:
             try:
                 date_entry = input("Anna aloitusaika muodossa HH:MM\n> ")
-                hour, minute = map(int, date_entry.split(':'))
-                self.start_time = datetime.time(hour, minute)
-                return self.start_time
+                if len(date_entry) != 5:
+                    print("Syöte on väärän mittainen, yritä uudelleen")
+                    continue
+                else:
+                    hour, minute = map(int, date_entry.split(':'))
+                    self.start_time = datetime.time(hour, minute)
+                    self.start_time = self.start_time.strftime("%H:%M")
+                    return self.start_time
             except Exception as e:
                print(f"Virheellinen syöte, {e}")
 
@@ -38,16 +50,34 @@ class Tuntikirja:
         while True:
             try:
                 enddate_entry = input("Anna lopetuspäivä muodossa DD/MM/YYYY\n> ")
-                day, month, year = map(int, enddate_entry.split('/'))
-                self.end_date = datetime.date(year, month, day)
-                if self.start_date > self.end_date:
-                    valinta = int(input(f"Lopetuspäivämäärä ({self.end_date}) on ennen aloituspäivämäärää ({self.start_date}), haluaisitko muuttaa aloituspäivän? \nValitse 1, jos haluat muuttaa aloituspäivän. \nValitse 2, jos haluat muuttaa lopetuspäivän. \n"))
-                    if valinta == 1:
-                        self.set_start_date()
-                        return self.end_date
-                    elif valinta ==2:
-                        self.set_end_date()
-                return self.end_date
+                if len(enddate_entry) != 10:
+                    print("Syöte on väärän mittainen, yritä uudelleen")
+                    continue
+                else:
+                    day, month, year = map(int, enddate_entry.split('/'))
+                    self.end_date = datetime.date(year, month, day)
+                    while True:
+                        if self.start_date > self.end_date:
+                            while True:
+                                try:
+                                    valinta = int(input(
+                                        f"Lopetuspäivämäärä ({self.end_date}) on ennen aloituspäivämäärää ({self.start_date})\n1: Vaihda aloituspäivä\n2: Vaihda lopetuspäivä\n> "))
+                                    if valinta == 1:
+                                        self.set_start_date()
+
+                                        break
+                                    elif valinta == 2:
+                                        self.set_end_date()
+                                        break
+                                    else:
+                                        print("Virheellinen komento, yritä uudelleen")
+                                        continue
+                                except Exception as e:
+                                    print(f"Virheellinen syöte, {e}")
+                                    continue
+
+                        else:
+                            return self.end_date
                     
 
             except Exception as e:
@@ -59,6 +89,7 @@ class Tuntikirja:
         while True:
             try:
                 endtime_entry = input("Anna lopetusaika muodossa HH:MM\n> ")
+<<<<<<< HEAD
                 hour, minute = map(int, endtime_entry.split(':'))
                 self.end_time = datetime.time(hour, minute)
                 if self.start_date > self.end_date:
@@ -83,17 +114,77 @@ class Tuntikirja:
                             print("Valitse numero 1-4 väliltä.")
                     elif self.end_time > self.start_time:
                         return self.end_time
+=======
+                if len(endtime_entry) != 5:
+                    print("Syöte on väärän mittainen, yritä uudelleen")
+                    continue
+                else:
+                    hour, minute = map(int, endtime_entry.split(':'))
+                    self.end_time = datetime.time(hour, minute)
+                    self.end_time = self.end_time.strftime("%H:%M")
+
+                    while True:
+
+                        if self.start_date > self.end_date:
+                            valinta = int(input(f"Työn lopetusajankohta ({self.end_time}) ei voi olla ennen aloitusajankohtaa ({self.start_time}).\n1: Vaihda aloitusajankohta\n2: Vaihda lopetusajankohta\n> "))
+                            if valinta == 1:
+                                self.set_start_date()
+                            elif valinta == 2:
+                                self.set_end_date()
+                            else:
+                                print("Virheellinen syöte, yritä uudelleen")
+
+                        elif self.start_date < self.end_date:
+                            return self.end_time
+
+                        elif self.start_date == self.end_date:
+                            if self.end_time <= self.start_time:
+                                valinta = int(input(f"Antamasi lopetuskellonaika ({self.end_time}) on joko sama tai ennen aloituskellonaikaa ({self.start_time}).\n1: Vaihda aloituspäivä\n2: Vaihda aloitusaika\n3: Vaihda lopetuspäivä \n4: Vaihda lopetusaika\n> "))
+                                if valinta == 1:
+                                    self.set_start_date()
+                                elif valinta == 2:
+                                    self.set_start_time()
+                                elif valinta == 3:
+                                    self.set_end_date()
+                                elif valinta == 4:
+                                    self.set_end_time()
+                                else:
+                                    print("Valitse numero 1-4 väliltä.")
+                            elif self.end_time > self.start_time:
+                                return self.end_time
+>>>>>>> 98e4dd276a261c15f94067ba4690fe7854d5be79
             except Exception as e:
-                print(f"Virheellinen syöte, {e}")        
+                print(f"Virheellinen syöte, {e}")
+                continue
   
     def set_project_name(self):
-        self.project_name = input("Anna projektin nimi: \n> ")
-        return self.project_name
+        while True:
+            try:
+                project_name_entry = input("Anna projektin nimi: \n> ")
+                if len(project_name_entry) < 1 or len(project_name_entry) > 50:
+                    print("Syöte on väärän mittainen, syötteen tulee olla väliltä 1 ja 50, yritä uudelleen")
+                    continue
+                else:
+                    self.project_name = project_name_entry
+                    return self.project_name
+            except Exception as e:
+                print(f"Virheellinen syöte, {e}")
+                continue
 
     
     def set_definition(self):
-        self.definition = input("Anna työskentelyn sisältö: \n> ")
-        return self.definition
+        while True:
+            try:
+                definition_entry = input("Anna työskentelyn sisältö: \n> ")
+                if len(definition_entry) < 1 or len(definition_entry) > 255:
+                    print("Syöte on väärän mittainen, syötteen tulee olla väliltä 1 ja 255, yritä uudelleen")
+                    continue
+                else:
+                    self.definition = definition_entry
+                    return self.definition
+            except Exception as e:
+                print(f"Virhe tapahtui, {e}")
+                continue
 
 
     def __str__(self):
@@ -129,11 +220,11 @@ def menu(user):
         except Exception as e:
             # tuli virhe jossain päin koodia
 
-            # raise tarkempaa testausta varten
-            raise e
+            #raise tarkempaa testausta varten
+            #raise e
 
             # raaka errorin printti
-            # print(f"Virheellinen syöte, {e}")
+            print(f"Virheellinen syöte, {e}")
 
             # käyttäjäystävällisempi printti?
             # print("Voihan juukeli jokin meni pieleen")
@@ -168,14 +259,19 @@ def insert_to_database(tuntikirja, user):
             cur.execute(
                 sql.SQL("""CREATE TABLE {}(
                     id              serial primary key,
-                    start_date      varchar(255) NOT NULL,
-                    start_time      varchar(255) NOT NULL,
-                    end_date        varchar(255) NOT NULL,
-                    end_time        varchar(255) NOT NULL,
-                    project_name    varchar(255) NOT NULL,
-                    definition      varchar(255) NOT NULL
+                    start_date      varchar(11) NOT NULL,
+                    start_time      varchar(6) NOT NULL,
+                    end_date        varchar(11) NOT NULL,
+                    end_time        varchar(6) NOT NULL,
+                    project_name    varchar(51) NOT NULL,
+                    definition      varchar(255) NOT NULL,
+                    weather         varchar(255) NOT NULL
                     )""").format(sql.Identifier(user)))
-        
+
+        # Haetaan säädata
+        temp, samu = get_weather_data()
+
+        weather = f"Lämpötila Phuketissa on {str(temp)} C, {samu}"
         # Asetetaan tietokantaan tallennettavat datat
         cur.execute(
             sql.SQL("""INSERT INTO {}(        
@@ -184,41 +280,40 @@ def insert_to_database(tuntikirja, user):
                 end_date, 
                 end_time, 
                 project_name, 
-                definition)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                definition,
+                weather)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """).format(sql.Identifier(user)),(
                     tuntikirja.start_date,
                     tuntikirja.start_time,
                     tuntikirja.end_date,
                     tuntikirja.end_time,
                     tuntikirja.project_name,
-                    tuntikirja.definition))
+                    tuntikirja.definition,
+                    weather))
 
         # Suoritetaan datan tallennus tietokantaan
         conn.commit()
 
     except Exception as e:
-        # print(f"Tapahtui virhe 1, {e}")
-        raise e
+        print(f"Tapahtui virhe 1, {e}")
+        #raise e
     finally:
         if conn is not None:
             conn.close()
 
+
 def select_from_table(user):
     conn = None
+    
     try:
         conn = psycopg2.connect(**config())
         cur = conn.cursor()   
         cur.execute(
             sql.SQL("SELECT * FROM {}").format(sql.Identifier(user)))
-        row = cur.fetchone()
-
-        field_names = [i[0]
-        for i in cur.description]
-        print(f"{field_names}")
-
+        row = cur.fetchone()       
         while row is not None:
-            print(f"{row}")
+            print(row)
             row = cur.fetchone()
         cur.close()
 
@@ -226,17 +321,18 @@ def select_from_table(user):
         print(error)
     finally:
         if conn is not None:
-            conn.close()  
-
+            conn.close()
 
 
 def check_if_table_exists(cur, table):
     cur.execute("SELECT * FROM information_schema.tables WHERE table_name=%s", (table,))
     return bool(cur.rowcount)
 
+
 def check_if_user_exists(cur, username):
     cur.execute("SELECT * FROM users WHERE username=%s", (username,))
     return bool(cur.rowcount)
+
 
 def login_window():
     login_window_commands = "1: Kirjaudu sisään \n" \
@@ -259,8 +355,8 @@ def login_window():
             else:
                 print("Virheellinen syöte")
         except Exception as e:
-            # print(f"Tapahtui virhe 2, {e}")
-            raise e
+            print(f"Tapahtui virhe 2, {e}")
+            # raise e
 
 
 def register():
@@ -278,7 +374,7 @@ def register():
                     """
                         CREATE TABLE users (
                             id serial primary key,
-                            username varchar(255) NOT NULL,
+                            username varchar(21) NOT NULL,
                             password varchar(255) NOT NULL
                         )
                     """)
@@ -289,6 +385,9 @@ def register():
                 break
             elif command == 1:
                 username = input("Anna käyttäjänimi\n> ")
+                if len(username) < 1 or len(username) > 20:
+                    print("Syöte on väärän mittainen, syötteen tulee olla väliltä 1 ja 20, yritä uudelleen")
+                    continue
                 password = input("Anna salasana\n> ")
                 password2 = input("Anna salasana uudelleen\n> ")
                 if password == password2:
@@ -302,18 +401,40 @@ def register():
                         hashed_password = SHA256.new()
                         hashed_password.update(encoded_password)
                         binary_password_string = hashed_password.digest()
-                        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, str(binary_password_string),))
+                        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
 
                         conn.commit()
                         break
                 else:
-                    print("Salasanat eivät täsmää")
+                    password = input("Anna salasana\n> ")
+                    if len(password) < 1 or len(password) > 30:
+                        print("Syöte on väärän mittainen, syötteen tulee olla väliltä 1 ja 30, yritä uudelleen")
+                        continue
+                    else:
+                        password2 = input("Anna salasana uudelleen\n> ")
+                        if password == password2:
+                            # Tarkistetaan onko käyttäjänimi jo olemassa
+                            if check_if_user_exists(cur, username):
+                                # Käyttäjänimi on jo olemassa
+                                print("Käyttäjänimi on varattu")
+                                pass
+                            else:
+                                encoded_password = str.encode(password)
+                                hashed_password = SHA256.new()
+                                hashed_password.update(encoded_password)
+                                binary_password_string = hashed_password.digest()
+                                cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, str(binary_password_string),))
+
+                                conn.commit()
+                                break
+                        else:
+                            print("Salasanat eivät täsmää")
             else:
                 print("Virheellinen komento, yritä uudelleen")
 
     except Exception as e:
-        raise e
-        # print(f"Tapahtui virhe 3, {e}")
+        #raise e
+        print(f"Tapahtui virhe 3, {e}")
 
     finally:
         if conn is not None:
@@ -335,13 +456,13 @@ def login():
 
                 username = input("Anna käyttäjänimi\n>")
                 password = input("Anna salasana\n>")
-                encoded_password = str.encode(password)
-                hashed_password = SHA256.new()
-                hashed_password.update(encoded_password)
-                binary_password_string = hashed_password.digest()
+                # encoded_password = str.encode(password)
+                # hashed_password = SHA256.new()
+                # hashed_password.update(encoded_password)
+                # binary_password_string = hashed_password.digest()
 
 
-                cur.execute("SELECT username FROM users WHERE username=%s AND password=%s", (username, str(binary_password_string),))
+                cur.execute("SELECT username FROM users WHERE username=%s AND password=%s", (username,password))
                 if bool(cur.rowcount) is True:
                     returned_user = cur.fetchone()[0]
                     user = returned_user
@@ -352,11 +473,49 @@ def login():
                 print("Virheellinen komento")
 
     except Exception as e:
-        #print(f"Tapahtui virhe 4, {e}")
-        raise e
+        print(f"Tapahtui virhe 4, {e}")
+        #raise e
     finally:
         if conn is not None:
             conn.close()
+
+
+def get_weather_data():
+    api_key = "340ff6fa90f384a37b7784ac9a150849"
+    city_id = "1151254"
+    api_call = f"https://api.openweathermap.org/data/2.5/weather?id={city_id}&appid={api_key}"
+    response = requests.get(api_call)
+    data = json.loads(response.text)
+
+    for key, value in data.items():
+        if key == "main":
+            kelvin = value["temp"]
+            celsius = kelvin - 273.15
+            temp = ("%.1f" % celsius)
+            samu = ""
+            if celsius > 50:
+                samu = "Samu on tulessa"
+            elif celsius > 40:
+                samu = "Samulla on helevetin kuuma"
+            elif celsius > 30:
+                samu = "Samulla on kuuma"
+            elif celsius > 25:
+                samu = "Samulla on aika lämmin"
+            elif celsius > 20:
+                samu = "Samulla on sopiva"
+            elif celsius > 15:
+                samu = "Samun mielestä sais olla vähän lämpimämpi"
+            elif celsius > 10:
+                samu = "Samulla on viileä"
+            elif celsius > 5:
+                samu = "Samulla on kylmä"
+            elif celsius > 0:
+                samu = "Samua palelee"
+            elif celsius < -50:
+                samu = "Samu on jäätynyt"
+            else:
+                samu = "Thaimaa on jäässä mutta Samu sinnittelee vielä samalla kun thaimaalaiset jäätyvät ympärillä"
+            return temp, samu
 
 
 if __name__ == "__main__":
