@@ -312,6 +312,24 @@ def select_from_table(user):
 
 
 
+    # Hae viimeisimmät kirjaukset
+    conn = psycopg2.connect(**config())   
+    cur = conn.cursor() 
+    cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = %s", (user))
+    row = cur.fetchall()     
+
+    while row is not None:
+        for i in row:
+            i = ' '.join(i)        
+            cur.execute(f"SELECT * FROM {i};")
+            row = cur.fetchone()    
+            print(f"\n{i} - Tuntikirja")
+
+            while row is not None:  
+                rivi = ' | '.join(map(str,(row)))
+                print(rivi)
+                row = cur.fetchone()
+                
 
 def check_if_table_exists(cur, table):
     cur.execute("SELECT * FROM information_schema.tables WHERE table_name=%s", (table,))
@@ -369,7 +387,7 @@ def register():
                     """)
         while True:
             command = int(input("1: Rekisteröidy\n"
-                                "2: Poistu\n>"))
+                                "2: Poistu\n> "))
             if command == 2:
                 break
             elif command == 1:
@@ -445,8 +463,8 @@ def login():
 
             elif command == 1:
 
-                username = input("Anna käyttäjänimi\n>")
-                password = input("Anna salasana\n>")
+                username = input("Anna käyttäjänimi\n> ")
+                password = input("Anna salasana\n> ")
                 encoded_password = str.encode(password)
                 hashed_password = SHA256.new()
                 hashed_password.update(encoded_password)
