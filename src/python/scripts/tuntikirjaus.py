@@ -65,7 +65,7 @@ class Tuntikirja:
                 if self.start_date > self.end_date:
                     valinta = int(input(f"Työn lopetusajankohta ({self.end_time}) ei voi ennen aloitusajankohtaa ({self.start_time}). Haluatko muuttaa aloitusajankohtaa? Vastaa 1, jos haluat.\n>"))
                     if valinta == 1:
-                        self.set_start_date()
+                        self.set_start_time()
                 elif self.start_date < self.end_date:
                     return self.end_time
                 elif self.start_date == self.end_date:
