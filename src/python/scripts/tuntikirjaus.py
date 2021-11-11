@@ -373,7 +373,7 @@ def register():
                         hashed_password = SHA256.new()
                         hashed_password.update(encoded_password)
                         binary_password_string = hashed_password.digest()
-                        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, binary_password_string))
+                        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, str(binary_password_string)))
 
                         conn.commit()
                         break
