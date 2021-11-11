@@ -2,9 +2,7 @@ import datetime
 from config import config
 import psycopg2
 import psycopg2.sql as sql
-
-user = "Hannu"
-
+from Crypto.Hash import SHA256
 
 class Tuntikirja:
     def __init__(self, start_date = 0, end_date = 0, start_time = 0, end_time = 0, project_name = "", definition = ""):
@@ -102,23 +100,25 @@ class Tuntikirja:
                f"Selite: {self.definition}"
 
 
-def menu():
+def menu(user):
     menu_commands = "1: Lisää uusi tuntikirja \n" \
                     "2: Katso kuluneen viikon tuntikirjaukset \n" \
-                    "3: Poistu\n>"
+                    "3: Kirjaudu ulos\n>"
 
     while True:
         try:
+            print(f"Kirjautuneena sisään käyttäjällä: {user}")
             command = int(input(menu_commands))
             if command == 1:
                 # tee uusi tuntikirja
-                make_new_worklog()
+                make_new_worklog(user)
             elif command == 2:
                 # katso tuntikirjaukset
                 pass
             elif command == 3:
-                # lopettaa ohjelman
-                break
+                # kirjautuu ulos
+                user = None
+                login_window()
             else:
                 print("Virheellinen syöte")
         except Exception as e:
@@ -134,7 +134,7 @@ def menu():
             # print("Voihan juukeli jokin meni pieleen")
 
 
-def make_new_worklog():
+def make_new_worklog(user):
     tuntikirja = Tuntikirja()
     tuntikirja.set_start_date()
     tuntikirja.set_start_time()
@@ -142,18 +142,19 @@ def make_new_worklog():
     tuntikirja.set_end_time()
     tuntikirja.set_project_name()
     tuntikirja.set_definition()
+    print("Uusi tuntikirjaus lisätty")
     print(f"\n{tuntikirja}\n")
 
-    insert_to_database(tuntikirja)
+    insert_to_database(tuntikirja, user)
 
 
-def insert_to_database(tuntikirja):
+def insert_to_database(tuntikirja, user):
     con = None
     try:
         # Laitetaan data databaseen
         conn = psycopg2.connect(**config())
         cur = conn.cursor()
-        if check_if_table_exists(conn, cur):
+        if check_if_table_exists(cur, user):
             # table for the user already exists
             pass
         else:
@@ -186,20 +187,143 @@ def insert_to_database(tuntikirja):
         conn.commit()
 
     except Exception as e:
-        print(f"Tapahtui virhe, {e}")
+        # print(f"Tapahtui virhe 1, {e}")
+        raise e
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+def check_if_table_exists(cur, table):
+    cur.execute("SELECT * FROM information_schema.tables WHERE table_name=%s", (table,))
+    return bool(cur.rowcount)
+
+def check_if_user_exists(cur, username):
+    cur.execute("SELECT * FROM users WHERE username=%s", (username,))
+    return bool(cur.rowcount)
+
+def login_window():
+    login_window_commands = "1: Kirjaudu sisään \n" \
+                            "2: Rekisteröidy \n" \
+                            "3: Poistu\n>"
+
+    while True:
+        try:
+            print("Et ole kirjautuneena sisään\n")
+            command = int(input(login_window_commands))
+            if command == 1:
+                # kirjaudu sisään
+                login()
+            elif command == 2:
+                # rekisteröidy
+                register()
+            elif command == 3:
+                # lopettaa ohjelman
+                quit()
+            else:
+                print("Virheellinen syöte")
+        except Exception as e:
+            # print(f"Tapahtui virhe 2, {e}")
+            raise e
+
+
+def register():
+    con = None
+    try:
+        # Laitetaan data databaseen
+        conn = psycopg2.connect(**config())
+        cur = conn.cursor()
+        if check_if_table_exists(cur, "users"):
+            # table for the user already exists
+            pass
+        else:
+            # tehdään table kayttajat
+            cur.execute(
+                    """
+                        CREATE TABLE users (
+                            id serial primary key,
+                            username varchar(255) NOT NULL,
+                            password varchar(255) NOT NULL
+                        )
+                    """)
+        while True:
+            command = int(input("1: Rekisteröidy\n"
+                                "2: Poistu\n>"))
+            if command == 2:
+                break
+            elif command == 1:
+                username = input("Anna käyttäjänimi\n>")
+                password = input("Anna salasana\n>")
+                password2 = input("Anna salasana uudelleen\n>")
+                if password == password2:
+                    # Tarkistetaan onko käyttäjänimi jo olemassa
+                    if check_if_user_exists(cur, username):
+                        # Käyttäjänimi on jo olemassa
+                        print("Käyttäjänimi on varattu")
+                        pass
+                    else:
+                        encoded_password = str.encode(password)
+                        hashed_password = SHA256.new()
+                        hashed_password.update(encoded_password)
+                        binary_password_string = hashed_password.digest()
+                        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, str(binary_password_string),))
+
+                        conn.commit()
+                        break
+                else:
+                    print("Salasanat eivät täsmää")
+            else:
+                print("Virheellinen komento, yritä uudelleen")
+
+    except Exception as e:
+        raise e
+        # print(f"Tapahtui virhe 3, {e}")
 
     finally:
         if conn is not None:
             conn.close()
 
 
-def check_if_table_exists(conn, cur):
-    cur.execute("SELECT * FROM information_schema.tables WHERE table_name=%s", (user,))
-    return bool(cur.rowcount)
+def login():
+    con = None
+    try:
+        conn = psycopg2.connect(**config())
+        cur = conn.cursor()
+        while True:
+            command = int(input("1: Kirjaudu\n"
+                                "2: Poistu\n>"))
+            if command == 2:
+                break
+
+            elif command == 1:
+                username = input("Anna käyttäjänimi\n>")
+                password = input("Anna salasana\n>")
+                encoded_password = str.encode(password)
+                hashed_password = SHA256.new()
+                hashed_password.update(encoded_password)
+                binary_password_string = hashed_password.digest()
+
+
+                cur.execute("SELECT username FROM users WHERE username=%s AND password=%s", (username, str(binary_password_string),))
+                if bool(cur.rowcount) is True:
+                    returned_user = cur.fetchone()[0]
+                    user = returned_user
+                    menu(user)
+                else:
+                    print("Väärä käyttäjänimi tai salasana")
+            else:
+                print("Virheellinen komento")
+
+    except Exception as e:
+        #print(f"Tapahtui virhe 4, {e}")
+        raise e
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 if __name__ == "__main__":
-    menu()
+    login_window()
 
 
 
