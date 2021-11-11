@@ -281,7 +281,7 @@ def select_from_table(user):
         # Hae viimeisimmät kirjaukset
         conn = psycopg2.connect(**config())
         cur = conn.cursor()
-        cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = %s", (user,))
+        cur.execute(sql.SQL("SELECT * FROM {}").format(sql.Identifier(user)))
         rows = cur.fetchall()
 
         if rows is not None:
