@@ -1,30 +1,31 @@
 import psycopg2
 from config import config
+import smtplib
 
-conn = psycopg2.connect(**config())
+server = smtplib.SMTP('smtp.gmail.com', 587)
+server.ehlo()
+server.starttls()
+server.ehlo()
+server.login("elinaylk", "salasananionsalaisuus")
 
-cur = conn.cursor() 
-cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES, users WHERE TABLE_NAME = users.username;")
-row = cur.fetchall()
+def viesti():
+    conn = psycopg2.connect(**config())
+    cur = conn.cursor() 
+    cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES, users WHERE TABLE_NAME = users.username;")
+    row = cur.fetchall()
+    viesti = open("viesti.txt", "a")
+    while row is not None:
+        for i in row:
+            i = ' '.join(i)        
+            cur.execute(f"SELECT * FROM {i};")
+            row = cur.fetchone()    
+            viesti.write(f"\n{i} - Tuntikirja")
+            while row is not None:  
+                rivi = ' | '.join(map(str,(row)))
+                viesti.write(rivi)
+                row = cur.fetchone()
+    return viesti
 
-cur2 = conn.cursor() 
-cur2.execute(f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS, users WHERE TABLE_NAME = users.username;")
-row2 = cur2.fetchall()      
-
-while row is not None:
-    for i in row:
-        i = ' '.join(i)        
-        cur.execute(f"SELECT * FROM {i};")
-        row = cur.fetchone()    
-        print(f"\n{i} - Tuntikirja")
-
-        while row is not None:  
-            # cur2.execute(f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS, users WHERE TABLE_NAME = users.username;")
-
-            # row2 = cur2.fetchall()                                     
-            # rivi2 = '  '.join(map(str,(row2))) 
-            # print(rivi2)               
-
-            rivi = ' | '.join(map(str,(row)))
-            print(rivi)
-            row = cur.fetchone()
+if __name__ == "__main__":
+    msg = viesti()
+    server.sendmail("elinaylk", "creep-89@hotmail.com", (msg))

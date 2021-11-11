@@ -4,7 +4,7 @@ from config import config
 import psycopg2
 import psycopg2.sql as sql
 from Crypto.Hash import SHA256
-import requests
+import requests 
 
 
 class Tuntikirja:
@@ -281,24 +281,21 @@ def select_from_table(user):
         # Hae viimeisimmät kirjaukset
         conn = psycopg2.connect(**config())
         cur = conn.cursor()
-        cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = %s", (user,))
-        rows = cur.fetchall()
+        cur.execute(f"SELECT * FROM {user};")
+        row = cur.fetchall()
 
-        if rows is not None:
-            for row in rows:
-                print(row)
-                '''
-                row = ' '.join(row)
-                cur.execute(f"SELECT * FROM {row};")
+        #while row is not None:
+        for i in row:
+            print(i)
+            i = ' '.join(i)        
+            cur.execute(f"SELECT * FROM {i};")
+            row = cur.fetchone()    
+            print(f"\n{i} - Tuntikirja")
+
+            while row is not None:  
+                rivi = ' | '.join(map(str,(row)))
+                print(rivi)
                 row = cur.fetchone()
-                print(f"\n{row} - Tuntikirja")
-
-                if row is not None:
-                    for row in rows:
-                        rivi = ' | '.join(map(str, (row)))
-                        print(rivi)
-                        row = cur.fetchone()
-                '''
 
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
