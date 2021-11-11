@@ -1,25 +1,30 @@
-    
-    
-    server = smtplib.SMTP('smtp.gmail.com', 587)
+import psycopg2
+from config import config
 
-    server.ehlo()
-    server.starttls()
-    server.ehlo()
+conn = psycopg2.connect(**config())
 
-    server.login(USERNAME, PASSWORD)
+cur = conn.cursor() 
+cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES, users WHERE TABLE_NAME = users.username;")
+row = cur.fetchall()
 
-    fromaddr = SENDER 
-    toaddr = RECEIVER 
-    msg = MIMEMultipart()
-    msg['From'] = fromaddr
-    msg['To'] = toaddr
-    msg['Subject'] = "Tämä on testi!"
+cur2 = conn.cursor() 
+cur2.execute(f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS, users WHERE TABLE_NAME = users.username;")
+row2 = cur2.fetchall()      
 
-    #tää pitäis toimia loppuversiossa
-    #body = get_data()
-    body = 'Hello World!'
-    
-    msg.attach(MIMEText(body, 'plain'))
+while row is not None:
+    for i in row:
+        i = ' '.join(i)        
+        cur.execute(f"SELECT * FROM {i};")
+        row = cur.fetchone()    
+        print(f"\n{i} - Tuntikirja")
 
-    text = msg.as_string()
-    server.sendmail(fromaddr, toaddr, text)
+        while row is not None:  
+            # cur2.execute(f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS, users WHERE TABLE_NAME = users.username;")
+
+            # row2 = cur2.fetchall()                                     
+            # rivi2 = '  '.join(map(str,(row2))) 
+            # print(rivi2)               
+
+            rivi = ' | '.join(map(str,(row)))
+            print(rivi)
+            row = cur.fetchone()
