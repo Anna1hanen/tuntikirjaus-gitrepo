@@ -49,3 +49,22 @@ resource "google_compute_firewall" "default" {
   }
   target_tags = ["tuntikirjaus-firewall-tag"]
 }
+
+# VM-instanssin luonti
+resource "google_compute_instance" "vm_instance" {
+  name         = "tuntikirjaus-instanssi"
+  machine_type = "f1-micro"
+  target_tags = ["tuntikirjaus-firewall-tag"]
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-9"
+    }
+  }
+
+  network_interface {
+    network = google_compute_network.vpc_network.name
+    access_config {
+    }
+  }
+}
