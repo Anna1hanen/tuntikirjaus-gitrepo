@@ -1,4 +1,4 @@
-    
+
     
     server = smtplib.SMTP('smtp.gmail.com', 587)
 
@@ -23,3 +23,5 @@
 
     text = msg.as_string()
     server.sendmail(fromaddr, toaddr, text)
+
+
