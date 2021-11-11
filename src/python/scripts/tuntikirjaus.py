@@ -2,6 +2,7 @@ import datetime
 from config import config
 import psycopg2
 import psycopg2.sql as sql
+from Crypto.Hash import SHA256
 
 class Tuntikirja:
     def __init__(self, start_date = 0, end_date = 0, start_time = 0, end_time = 0, project_name = "", definition = ""):
@@ -115,8 +116,9 @@ def menu(user):
                 # katso tuntikirjaukset
                 pass
             elif command == 3:
-                # lopettaa ohjelman
-                break
+                # kirjautuu ulos
+                user = None
+                login_window()
             else:
                 print("Virheellinen syöte")
         except Exception as e:
@@ -217,12 +219,13 @@ def login_window():
                 register()
             elif command == 3:
                 # lopettaa ohjelman
-                break
+                quit()
             else:
                 print("Virheellinen syöte")
         except Exception as e:
             # print(f"Tapahtui virhe 2, {e}")
             raise e
+
 
 def register():
     con = None
@@ -259,7 +262,11 @@ def register():
                         print("Käyttäjänimi on varattu")
                         pass
                     else:
-                        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password,))
+                        encoded_password = str.encode(password)
+                        hashed_password = SHA256.new()
+                        hashed_password.update(encoded_password)
+                        binary_password_string = hashed_password.digest()
+                        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, str(binary_password_string),))
 
                         conn.commit()
                         break
@@ -291,8 +298,13 @@ def login():
             elif command == 1:
                 username = input("Anna käyttäjänimi\n>")
                 password = input("Anna salasana\n>")
+                encoded_password = str.encode(password)
+                hashed_password = SHA256.new()
+                hashed_password.update(encoded_password)
+                binary_password_string = hashed_password.digest()
 
-                cur.execute("SELECT username FROM users WHERE username=%s AND password=%s", (username, password))
+
+                cur.execute("SELECT username FROM users WHERE username=%s AND password=%s", (username, str(binary_password_string),))
                 if bool(cur.rowcount) is True:
                     returned_user = cur.fetchone()[0]
                     user = returned_user
@@ -303,8 +315,8 @@ def login():
                 print("Virheellinen komento")
 
     except Exception as e:
-        print(f"Tapahtui virhe 4, {e}")
-
+        #print(f"Tapahtui virhe 4, {e}")
+        raise e
     finally:
         if conn is not None:
             conn.close()
