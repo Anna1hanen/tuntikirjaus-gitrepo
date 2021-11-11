@@ -206,10 +206,9 @@ def insert_to_database(tuntikirja, user):
 
 def select_from_table(user):
     # Hae viimeisimmät kirjaukset
-    conn = psycopg2.connect(**config())
-    conn = None    
+    conn = psycopg2.connect(**config())   
     cur = conn.cursor() 
-    cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES, WHERE TABLE_NAME = %s", (user))
+    cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = %s", (user))
     row = cur.fetchall()     
 
     while row is not None:
@@ -223,9 +222,7 @@ def select_from_table(user):
                 rivi = ' | '.join(map(str,(row)))
                 print(rivi)
                 row = cur.fetchone()
-
-
-
+                
 
 def check_if_table_exists(cur, table):
     cur.execute("SELECT * FROM information_schema.tables WHERE table_name=%s", (table,))
@@ -281,7 +278,7 @@ def register():
                     """)
         while True:
             command = int(input("1: Rekisteröidy\n"
-                                "2: Poistu\n>"))
+                                "2: Poistu\n> "))
             if command == 2:
                 break
             elif command == 1:
@@ -299,7 +296,7 @@ def register():
                         hashed_password = SHA256.new()
                         hashed_password.update(encoded_password)
                         binary_password_string = hashed_password.digest()
-                        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, binary_password_string))
+                        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, str(binary_password_string)))
 
                         conn.commit()
                         break
@@ -330,15 +327,15 @@ def login():
 
             elif command == 1:
 
-                username = input("Anna käyttäjänimi\n>")
-                password = input("Anna salasana\n>")
+                username = input("Anna käyttäjänimi\n> ")
+                password = input("Anna salasana\n> ")
                 encoded_password = str.encode(password)
                 hashed_password = SHA256.new()
                 hashed_password.update(encoded_password)
                 binary_password_string = hashed_password.digest()
 
 
-                cur.execute("SELECT username FROM users WHERE username=%s AND password=%s", (username,binary_password_string))
+                cur.execute("SELECT username FROM users WHERE username=%s AND password=%s", (username,str(binary_password_string)))
                 if bool(cur.rowcount) is True:
                     returned_user = cur.fetchone()[0]
                     user = returned_user
