@@ -176,13 +176,13 @@ def menu(user):
 
     while True:
         try:
-            print(f"Kirjautuneena sisään käyttäjällä: {user}")
+            print(f"\nKirjautuneena sisään käyttäjällä: {user}\n")
             command = int(input(menu_commands))
             if command == 1:
                 # tee uusi tuntikirja
                 make_new_worklog(user)
             elif command == 2:
-                print(select_from_table(user))
+                select_from_table(user)
                 pass
             elif command == 3:
                 # kirjautuu ulos
@@ -281,21 +281,13 @@ def select_from_table(user):
         # Hae viimeisimmät kirjaukset
         conn = psycopg2.connect(**config())
         cur = conn.cursor()
-        cur.execute(f"SELECT * FROM {user};")
-        row = cur.fetchall()
+        cur.execute(sql.SQL("SELECT * FROM {}").format(sql.Identifier(user)))
+        rows = cur.fetchall()
 
-        #while row is not None:
-        for i in row:
-            print(i)
-            i = ' '.join(i)        
-            cur.execute(f"SELECT * FROM {i};")
-            row = cur.fetchone()    
-            print(f"\n{i} - Tuntikirja")
-
-            while row is not None:  
-                rivi = ' | '.join(map(str,(row)))
-                print(rivi)
-                row = cur.fetchone()
+        if rows is not None:
+            print(f"{user}")
+            for row in rows:
+                print(f"{row[1]} - {row[2]} - {row[3]} - {row[4]} - {row[5]} - {row[6]} - {row[7]}")
 
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
@@ -305,28 +297,6 @@ def select_from_table(user):
         if conn is not None:
             conn.close()
 
-
-
-
-
-    # Hae viimeisimmät kirjaukset
-    conn = psycopg2.connect(**config())   
-    cur = conn.cursor() 
-    cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = %s", (user))
-    row = cur.fetchall()     
-
-    while row is not None:
-        for i in row:
-            i = ' '.join(i)        
-            cur.execute(f"SELECT * FROM {i};")
-            row = cur.fetchone()    
-            print(f"\n{i} - Tuntikirja")
-
-            while row is not None:  
-                rivi = ' | '.join(map(str,(row)))
-                print(rivi)
-                row = cur.fetchone()
-                
 
 def check_if_table_exists(cur, table):
     cur.execute("SELECT * FROM information_schema.tables WHERE table_name=%s", (table,))
@@ -392,25 +362,6 @@ def register():
                 if len(username) < 1 or len(username) > 20:
                     print("Syöte on väärän mittainen, syötteen tulee olla väliltä 1 ja 20, yritä uudelleen")
                     continue
-                password = input("Anna salasana\n> ")
-                password2 = input("Anna salasana uudelleen\n> ")
-                if password == password2:
-                    # Tarkistetaan onko käyttäjänimi jo olemassa
-                    if check_if_user_exists(cur, username):
-                        # Käyttäjänimi on jo olemassa
-                        print("Käyttäjänimi on varattu")
-                        pass
-                    else:
-                        encoded_password = str.encode(password)
-                        hashed_password = SHA256.new()
-                        hashed_password.update(encoded_password)
-                        binary_password_string = hashed_password.digest()
-                        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, str(binary_password_string)))
-
-
-
-                        conn.commit()
-                        break
                 else:
                     password = input("Anna salasana\n> ")
                     if len(password) < 1 or len(password) > 30:
