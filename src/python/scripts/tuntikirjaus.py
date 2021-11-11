@@ -6,6 +6,7 @@ import psycopg2.sql as sql
 from Crypto.Hash import SHA256
 import requests
 
+
 class Tuntikirja:
     def __init__(self, start_date = 0, end_date = 0, start_time = 0, end_time = 0, project_name = "", definition = ""):
         self.start_date = start_date
@@ -277,19 +278,15 @@ def insert_to_database(tuntikirja, user):
 
 def select_from_table(user):
     conn = None
+    
     try:
         conn = psycopg2.connect(**config())
         cur = conn.cursor()   
         cur.execute(
             sql.SQL("SELECT * FROM {}").format(sql.Identifier(user)))
-        row = cur.fetchone()
-
-        field_names = [i[0]
-        for i in cur.description]
-        print(f"{field_names}")
-
+        row = cur.fetchone()       
         while row is not None:
-            print(f"{row}")
+            print(row)
             row = cur.fetchone()
         cur.close()
 
@@ -297,7 +294,7 @@ def select_from_table(user):
         print(error)
     finally:
         if conn is not None:
-            conn.close()  
+            conn.close()
 
 
 def check_if_table_exists(cur, table):
@@ -364,6 +361,23 @@ def register():
                 if len(username) < 1 or len(username) > 20:
                     print("Syöte on väärän mittainen, syötteen tulee olla väliltä 1 ja 20, yritä uudelleen")
                     continue
+                password = input("Anna salasana\n> ")
+                password2 = input("Anna salasana uudelleen\n> ")
+                if password == password2:
+                    # Tarkistetaan onko käyttäjänimi jo olemassa
+                    if check_if_user_exists(cur, username):
+                        # Käyttäjänimi on jo olemassa
+                        print("Käyttäjänimi on varattu")
+                        pass
+                    else:
+                        encoded_password = str.encode(password)
+                        hashed_password = SHA256.new()
+                        hashed_password.update(encoded_password)
+                        binary_password_string = hashed_password.digest()
+                        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
+
+                        conn.commit()
+                        break
                 else:
                     password = input("Anna salasana\n> ")
                     if len(password) < 1 or len(password) > 30:
@@ -415,13 +429,13 @@ def login():
 
                 username = input("Anna käyttäjänimi\n>")
                 password = input("Anna salasana\n>")
-                encoded_password = str.encode(password)
-                hashed_password = SHA256.new()
-                hashed_password.update(encoded_password)
-                binary_password_string = hashed_password.digest()
+                # encoded_password = str.encode(password)
+                # hashed_password = SHA256.new()
+                # hashed_password.update(encoded_password)
+                # binary_password_string = hashed_password.digest()
 
 
-                cur.execute("SELECT username FROM users WHERE username=%s AND password=%s", (username, str(binary_password_string),))
+                cur.execute("SELECT username FROM users WHERE username=%s AND password=%s", (username,password))
                 if bool(cur.rowcount) is True:
                     returned_user = cur.fetchone()[0]
                     user = returned_user
